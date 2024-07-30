@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum UserType {
+  EMPLOYEE
+  JOB_SEEKER
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  phonenumber String
+
+  title       String
+  description String
+  salary      Int?
+  creater     User     @relation("user_jobs", fields: [createrId], references: [id], onDelete: Cascade)
+  createrId   Int
+  Review      Review[]
+  userType    UserType 
+
+  @@map("jobs")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  role       Role
+  username   String
+  email      String    @unique
+  password   String    // Note: You should hash passwords before storing them
+  pic        String?   @default("../../profilepic/download(2).png")
+  Review     Review[]
+  jobs       Job[]     @relation("user_jobs")
+  isBlocked  Boolean   @default(false)
+
+  @@map("users")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content   String
+  rate      Int
+
+  job       Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId     String
+  author    User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  Int
+
+  @@map("Review")
+}
